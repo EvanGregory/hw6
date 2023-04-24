@@ -19,16 +19,30 @@ struct MyStringHash {
     // hash function entry point (i.e. this is h(k))
     HASH_INDEX_T operator()(const std::string& k) const
     {
-        // Add your code here
-
-
+      // Add your code here
+      HASH_INDEX_T aggregate = 0;
+      for (int index = 0; index < k.size() && index < 28; index++)
+      {
+          HASH_INDEX_T charVal = letterDigitToNumber(std::tolower(k[index]));
+          HASH_INDEX_T rConstant = rValues[4 - (index / 6)];
+          HASH_INDEX_T exConstant = (HASH_INDEX_T)pow(36.0, index % 6);
+          aggregate += (charVal * exConstant * rConstant);
+      }
+      return aggregate;
     }
 
-    // A likely helper function is to convert a-z,0-9 to an integral value 0-35
+    // A likely helper function is to convert a-z,0-9 to an integer value 0-35
     HASH_INDEX_T letterDigitToNumber(char letter) const
     {
         // Add code here or delete this helper function if you do not want it
-
+        size_t tempVal;
+        if (letter >= 'a' && letter <= 'z')
+            tempVal = (size_t)letter - 'a';
+        else if (letter >= '0' && letter <= '9')
+            tempVal = (size_t)letter - '0' + 26;
+        else
+            throw;
+        return tempVal;
     }
 
     // Code to generate the random R values
