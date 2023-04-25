@@ -440,14 +440,18 @@ template<typename K, typename V, typename Prober, typename Hash, typename KEqual
 void HashTable<K,V,Prober,Hash,KEqual>::resize()
 {
   size_t tableSize = 0;
+  std::vector<HashItem*> oldTable;
   for (HashItem* item : table_)
   {
     if (item != nullptr && !item->deleted)
+    {
       tableSize++;
+    }
+
   }
 
   mIndex_ = 0;
-  while (mIndex_ < 28 && tableSize >= CAPACITIES[mIndex_])
+  while (mIndex_ < 28 && tableSize > CAPACITIES[mIndex_] * this->rehashRatio)
   {
     mIndex_++;
   }
@@ -458,6 +462,10 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
   //CAPACITIES[mIndex_] is now the new size we need
 
   std::vector<HashItem*> oldTable = table_;
+  for (HashTable* item : table_)
+  {
+    item = nullptr;
+  }
   table_.clear();
   table_.resize(CAPACITIES[mIndex_], nullptr);
 
@@ -465,7 +473,18 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
   {
     if (thing != nullptr && !thing->deleted)
     {
-      insert(thing->item);
+      // cant just call insert bc it might recursively loop
+      HASH_INDEX_T h = this->probe(thing->item.first);
+      if (h == npos)
+        throw std::logic_error("No place to insert");
+      if (table_[h] == nullptr)
+      {
+        table_[h] = new HashItem(thing->item);
+      }
+      else
+      {
+        table_[h]->item.second = thing->item.second;
+      }
     }
   }
   oldTable.clear();
