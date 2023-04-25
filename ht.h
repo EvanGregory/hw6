@@ -293,7 +293,7 @@ const HASH_INDEX_T HashTable<K,V,Prober,Hash,KEqual>::CAPACITIES[] =
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 HashTable<K,V,Prober,Hash,KEqual>::HashTable(
     double resizeAlpha, const Prober& prober, const Hasher& hash, const KEqual& kequal)
-       :  hash_(hash), kequal_(kequal), prober_(prober), rehashRatio(resizeAlpha)
+       :  hash_(hash), kequal_(kequal), prober_(prober), rehashRatio(resizeAlpha), mIndex_(0), totalProbes_(0)
 {
     // Initialize any other data members as necessary
   table_.resize(CAPACITIES[0], nullptr);
@@ -497,7 +497,7 @@ void HashTable<K, V, Prober, Hash, KEqual>::reportAll(std::ostream& out) const
 	{
 		if(table_[i] != nullptr)
 		{
-			out << "Bucket " << i << ": " << table_[i]->item.first << " " << table_[i]->item.second << std::endl;
+			out << "Bucket " << i << ": " << table_[i]->item.first << " " << table_[i]->item.second << " | Deleted: " << table_[i]->deleted << std::endl;
 		}
 	}
 }
