@@ -440,6 +440,8 @@ template<typename K, typename V, typename Prober, typename Hash, typename KEqual
 void HashTable<K,V,Prober,Hash,KEqual>::resize()
 {
   const size_t tableSize = this->size();
+  if (mIndex_ != 0)
+    mIndex_--;
   while (mIndex_ < 28 && tableSize >= CAPACITIES[mIndex_])
   {
     mIndex_++;
