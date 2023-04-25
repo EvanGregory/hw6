@@ -273,7 +273,7 @@ private:
     HASH_INDEX_T mIndex_;  // index to CAPACITIES
 
     // ADD MORE DATA MEMBERS HERE, AS NECESSARY
-
+    const double rehashRatio;
 };
 
 // ----------------------------------------------------------------------------
@@ -293,7 +293,7 @@ const HASH_INDEX_T HashTable<K,V,Prober,Hash,KEqual>::CAPACITIES[] =
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 HashTable<K,V,Prober,Hash,KEqual>::HashTable(
     double resizeAlpha, const Prober& prober, const Hasher& hash, const KEqual& kequal)
-       :  hash_(hash), kequal_(kequal), prober_(prober)
+       :  hash_(hash), kequal_(kequal), prober_(prober), rehashRatio(resizeAlpha)
 {
     // Initialize any other data members as necessary
   table_.resize(CAPACITIES[0], nullptr);
@@ -335,6 +335,15 @@ size_t HashTable<K,V,Prober,Hash,KEqual>::size() const
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 {
+  size_t tableSize = 0; //includes deleted items
+  for (const HashItem* temp : table_)
+    if (temp != nullptr)
+      tableSize++;
+  if ((double)tableSize / (double)table_.size() >= rehashRatio)
+  {
+    this->resize();
+  }
+
   HASH_INDEX_T h = this->probe(p.first);
   if (h == npos)
     throw std::logic_error("No place to insert");
@@ -430,26 +439,28 @@ typename HashTable<K,V,Prober,Hash,KEqual>::HashItem* HashTable<K,V,Prober,Hash,
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 void HashTable<K,V,Prober,Hash,KEqual>::resize()
 {
-  HASH_INDEX_T i = 0;
-  for (const size_t tableSize = size();
-    i == 28/*capacities.size basically*/ || tableSize >= CAPACITIES[i]; i++); 
-  if (i == 28)
+  const size_t tableSize = this->size();
+  while (mIndex_ < 28 && tableSize >= CAPACITIES[mIndex_])
+  {
+    mIndex_++;
+  }
+  if (mIndex_ >= 28)
     throw std::logic_error("no more CAPACITIES exist");
-  //CAPACITIES[i] is now the new size we need
+    
+  //CAPACITIES[mIndex_] is now the new size we need
 
   std::vector<HashItem*> oldTable = table_;
-  delete table_;
-  table_.resize(CAPACITIES[i], nullptr);
+  table_.clear();
+  table_.resize(CAPACITIES[mIndex_], nullptr);
 
-  for (HashItem* item : oldTable)
+  for (HashItem* thing : oldTable)
   {
-    if (item != nullptr && !item->deleted)
+    if (thing != nullptr && !thing->deleted)
     {
-      insert(*item);
+      insert(thing->item);
     }
   }
-  delete oldTable;
-
+  oldTable.clear();
 }
 
 // Almost complete
@@ -468,7 +479,7 @@ HASH_INDEX_T HashTable<K,V,Prober,Hash,KEqual>::probe(const KeyType& key) const
         }
         // fill in the condition for this else if statement which should 
         // return 'loc' if the given key exists at this location
-        else if(table_[loc]->item.first == key) {
+        else if(table_[loc]->item.first == key && !(table_[loc]->deleted)) {
             return loc;
         }
         loc = prober_.next();
