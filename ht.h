@@ -449,40 +449,40 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
   }
 
   mIndex_ = 0;
-  while (mIndex_ < 28 && tableSize > CAPACITIES[mIndex_] * this->rehashRatio)
+  while ((double)tableSize > this->rehashRatio * CAPACITIES[mIndex_] )
   {
+    if (mIndex_ >= 28)
+      throw std::logic_error("no more CAPACITIES exist");
     mIndex_++;
   }
-
-  if (mIndex_ >= 28)
-    throw std::logic_error("no more CAPACITIES exist");
     
   //CAPACITIES[mIndex_] is now the new size we need
 
-  std::vector<HashItem*> oldTable = table_;
+  std::vector<HashItem*> oldTable;
   for (HashItem* item : table_)
   {
+    if (item != nullptr && !item->deleted)
+    {
+      oldTable.push_back(item);
+    }
     item = nullptr;
   }
-  table_.clear();
+  table_.clear(); //since table is full of null, essentially O(1)
   table_.resize(CAPACITIES[mIndex_], nullptr);
 
   for (HashItem* thing : oldTable)
   {
-    if (thing != nullptr && !thing->deleted)
+    // cant just call insert bc it might recursively loop
+    HASH_INDEX_T h = this->probe(thing->item.first);
+    if (h == npos)
+      throw std::logic_error("No place to insert");
+    if (table_[h] == nullptr)
     {
-      // cant just call insert bc it might recursively loop
-      HASH_INDEX_T h = this->probe(thing->item.first);
-      if (h == npos)
-        throw std::logic_error("No place to insert");
-      if (table_[h] == nullptr)
-      {
-        table_[h] = new HashItem(thing->item);
-      }
-      else
-      {
-        table_[h]->item.second = thing->item.second;
-      }
+      table_[h] = new HashItem(thing->item);
+    }
+    else
+    {
+      table_[h]->item.second = thing->item.second;
     }
   }
   oldTable.clear();
