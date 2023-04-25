@@ -440,14 +440,12 @@ template<typename K, typename V, typename Prober, typename Hash, typename KEqual
 void HashTable<K,V,Prober,Hash,KEqual>::resize()
 {
   size_t tableSize = 0;
-  std::vector<HashItem*> oldTable;
   for (HashItem* item : table_)
   {
     if (item != nullptr && !item->deleted)
     {
       tableSize++;
     }
-
   }
 
   mIndex_ = 0;
@@ -462,7 +460,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
   //CAPACITIES[mIndex_] is now the new size we need
 
   std::vector<HashItem*> oldTable = table_;
-  for (HashTable* item : table_)
+  for (HashItem* item : table_)
   {
     item = nullptr;
   }
