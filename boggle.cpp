@@ -107,9 +107,10 @@ bool boggleHelper(const std::set<std::string>& dict, const std::set<std::string>
 
 	if (foundWord)//once we find a word, we know we will return true
 	{
+		bool isPartofWord = boggleHelper(dict, prefix, board, word, result, r + dr, c + dc, dr, dc);
 		if (prefix.find(word) == prefix.end())// if word is a prefix, check if it makes a larger word before adding
 		{
-			if (!boggleHelper(dict, prefix, board, word, result, r + dr, c + dc, dr, dc))
+			if (!isPartofWord)
 			{
 				result.insert(word);
 			}
