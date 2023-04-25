@@ -21,12 +21,36 @@ struct MyStringHash {
     {
       // Add your code here
       HASH_INDEX_T aggregate = 0;
+      const HASH_INDEX_T powers[6] {1, 36, (HASH_INDEX_T)pow(36.0, 2), (HASH_INDEX_T)pow(36.0, 3), (HASH_INDEX_T)pow(36.0, 4), (HASH_INDEX_T)pow(36.0, 5)};
+
+      /*
+      failed attempt
       for (int index = 0; index < k.size() && index < 28; index++)
       {
           HASH_INDEX_T charVal = letterDigitToNumber(std::tolower(k[index]));
           HASH_INDEX_T rConstant = rValues[4 - (index / 6)];
-          HASH_INDEX_T exConstant = (HASH_INDEX_T)pow(36.0, index % 6);
+          HASH_INDEX_T exConstant;
+          if ((k.size() - 1) / 6 - index / 6 == 0) // if we are in the final group
+          {
+            rConstant = rValues[4 - ( (k.size() - 1) / 6 )];
+            exConstant = powers[(k.size() - 1) % 6 - index % 6];
+          }
+          else
+          {
+            rConstant = rValues[4 - index / 6];
+            exConstant = powers[5 - index % 6];
+          }
+       
           aggregate += (charVal * exConstant * rConstant);
+      }*/
+      for (int index = k.size() - 1; index >= 0; index--)
+      {
+        int distFromEnd = k.size() - index - 1;
+        HASH_INDEX_T charVal = letterDigitToNumber(std::tolower(k[index]));
+        HASH_INDEX_T rConst = rValues[4 - distFromEnd / 6];
+        HASH_INDEX_T expConst = powers[distFromEnd % 6];
+
+        aggregate = aggregate + (charVal * expConst * rConst);
       }
       return aggregate;
     }
