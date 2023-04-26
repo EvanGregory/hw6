@@ -330,6 +330,7 @@ size_t HashTable<K,V,Prober,Hash,KEqual>::size() const
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 {
+  //FIX: add variable for this
   size_t tableSize = 0; //count includes deleted items
   for (const HashItem* temp : table_)
     if (temp != nullptr)
