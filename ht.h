@@ -346,7 +346,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 
   HASH_INDEX_T h = this->probe(p.first);
   if (h == npos)
-    throw std::logic_error("No place to insert");
+    throw std::logic_error("No place to insert in insert");
   if (table_[h] == nullptr)
   {
     table_[h] = new HashItem(p);
@@ -475,7 +475,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
     // cant just call insert bc it might recursively loop
     HASH_INDEX_T h = this->probe(thing->item.first);
     if (h == npos)
-      throw std::logic_error("No place to insert");
+      throw std::logic_error("No place to insert in resize");
     if (table_[h] == nullptr)
     {
       table_[h] = new HashItem(thing->item);
