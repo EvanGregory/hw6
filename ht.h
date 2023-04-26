@@ -449,7 +449,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
   }
 
   mIndex_ = 0;
-  while ((double)tableSize > this->rehashRatio * CAPACITIES[mIndex_] )
+  while ((double)tableSize >= this->rehashRatio * CAPACITIES[mIndex_] )
   {
     if (mIndex_ >= 28)
       throw std::logic_error("no more CAPACITIES exist");
