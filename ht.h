@@ -335,11 +335,11 @@ size_t HashTable<K,V,Prober,Hash,KEqual>::size() const
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 {
-  size_t tableSize = 0; //includes deleted items
+  size_t tableSize = 0; //count includes deleted items
   for (const HashItem* temp : table_)
     if (temp != nullptr)
       tableSize++;
-  if ((double)tableSize / (double)table_.size() >= rehashRatio)
+  if ((double)tableSize / (double)table_.size() >= rehashRatio || tableSize == table_.size())
   {
     this->resize();
   }
