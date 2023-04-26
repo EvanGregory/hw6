@@ -346,12 +346,12 @@ void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
   if (table_[h] == nullptr)
   {
     table_[h] = new HashItem(p);
+    size_++;
   }
   else
   {
     table_[h]->item.second = p.second;
   }
-  size_++;
 
 }
 
@@ -475,12 +475,13 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
     if (table_[h] == nullptr)
     {
       table_[h] = thing;
+      size_++;
     }
     else
     {
       table_[h]->item.second = thing->item.second;
     }
-    size_++;
+    
   }
 }
 
