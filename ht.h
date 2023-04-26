@@ -274,6 +274,7 @@ private:
 
     // ADD MORE DATA MEMBERS HERE, AS NECESSARY
     const double rehashRatio;
+    size_t size_; 
 };
 
 // ----------------------------------------------------------------------------
@@ -293,7 +294,7 @@ const HASH_INDEX_T HashTable<K,V,Prober,Hash,KEqual>::CAPACITIES[] =
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 HashTable<K,V,Prober,Hash,KEqual>::HashTable(
     double resizeAlpha, const Prober& prober, const Hasher& hash, const KEqual& kequal)
-       :  hash_(hash), kequal_(kequal), prober_(prober), rehashRatio(resizeAlpha), mIndex_(0), totalProbes_(0)
+       :  hash_(hash), kequal_(kequal), prober_(prober), rehashRatio(resizeAlpha), mIndex_(0), totalProbes_(0), size_(0)
 {
     // Initialize any other data members as necessary
   table_.resize(CAPACITIES[0], nullptr);
@@ -322,13 +323,7 @@ bool HashTable<K,V,Prober,Hash,KEqual>::empty() const
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 size_t HashTable<K,V,Prober,Hash,KEqual>::size() const
 {
-  size_t size = 0;
-  for (const HashItem* item : table_)
-  {
-    if (item != nullptr && !(item->deleted))
-      size++;
-  }
-  return size;
+  return size_;
 }
 
 // Done by me
@@ -355,6 +350,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
   {
     table_[h]->item.second = p.second;
   }
+  size_++;
 
 }
 
@@ -364,8 +360,10 @@ void HashTable<K,V,Prober,Hash,KEqual>::remove(const KeyType& key)
 {
   HashItem* item = internalFind(key);
   if (item != nullptr)
+  {
     item->deleted = true;
-  
+    size_--;
+  }
 }
 
 
@@ -441,7 +439,8 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
 {
 
   mIndex_ = 0;
-  while ((double)this->size() >= this->rehashRatio * CAPACITIES[mIndex_])
+  double tableSize = (double)this->size();
+  while (tableSize >= this->rehashRatio * CAPACITIES[mIndex_])
   {
     if (mIndex_ >= 28)
       throw std::logic_error("no more CAPACITIES exist");
@@ -453,13 +452,17 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
   std::vector<HashItem*> oldTable;
   for (HashItem* item : table_)
   {
-    if (item != nullptr && !item->deleted)
+    if (item != nullptr)
     {
-      oldTable.push_back(item);
+      if (!item->deleted)
+        oldTable.push_back(item);
+      else
+        delete item;
     }
     item = nullptr;
   }
   table_.clear(); //since table is full of null, essentially O(1)
+  size_ = 0;
   table_.resize(CAPACITIES[mIndex_], nullptr);
 
   for (HashItem* thing : oldTable)
@@ -470,14 +473,14 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
       throw std::logic_error("No place to insert in resize");
     if (table_[h] == nullptr)
     {
-      table_[h] = new HashItem(thing->item);
+      table_[h] = thing;
     }
     else
     {
       table_[h]->item.second = thing->item.second;
     }
+    size_++;
   }
-  oldTable.clear();
 }
 
 // Almost complete
