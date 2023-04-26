@@ -439,17 +439,9 @@ typename HashTable<K,V,Prober,Hash,KEqual>::HashItem* HashTable<K,V,Prober,Hash,
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 void HashTable<K,V,Prober,Hash,KEqual>::resize()
 {
-  size_t tableSize = 0;
-  for (HashItem* item : table_)
-  {
-    if (item != nullptr && !item->deleted)
-    {
-      tableSize++;
-    }
-  }
 
   mIndex_ = 0;
-  while ((double)tableSize >= this->rehashRatio * CAPACITIES[mIndex_] )
+  while ((double)this->size() >= this->rehashRatio * CAPACITIES[mIndex_])
   {
     if (mIndex_ >= 28)
       throw std::logic_error("no more CAPACITIES exist");
