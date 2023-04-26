@@ -275,6 +275,7 @@ private:
     // ADD MORE DATA MEMBERS HERE, AS NECESSARY
     const double rehashRatio;
     size_t size_; 
+    size_t tableSize_;
 };
 
 // ----------------------------------------------------------------------------
@@ -294,7 +295,7 @@ const HASH_INDEX_T HashTable<K,V,Prober,Hash,KEqual>::CAPACITIES[] =
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 HashTable<K,V,Prober,Hash,KEqual>::HashTable(
     double resizeAlpha, const Prober& prober, const Hasher& hash, const KEqual& kequal)
-       :  hash_(hash), kequal_(kequal), prober_(prober), rehashRatio(resizeAlpha), mIndex_(0), totalProbes_(0), size_(0)
+       :  hash_(hash), kequal_(kequal), prober_(prober), rehashRatio(resizeAlpha), mIndex_(0), totalProbes_(0), size_(0), tableSize_(0)
 {
     // Initialize any other data members as necessary
   table_.resize(CAPACITIES[0], nullptr);
@@ -331,11 +332,8 @@ template<typename K, typename V, typename Prober, typename Hash, typename KEqual
 void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 {
   //FIX: add variable for this
-  size_t tableSize = 0; //count includes deleted items
-  for (const HashItem* temp : table_)
-    if (temp != nullptr)
-      tableSize++;
-  if ((double)tableSize / (double)table_.size() >= rehashRatio || tableSize == table_.size())
+  size_t maxTableSize = table_.size();
+  if ((double)tableSize_ / (double)maxTableSize >= rehashRatio || tableSize_ == maxTableSize)
   {
     this->resize();
   }
@@ -347,6 +345,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
   {
     table_[h] = new HashItem(p);
     size_++;
+    tableSize_++;
   }
   else
   {
@@ -463,6 +462,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
     item = nullptr;
   }
   table_.clear(); //since table is full of null, essentially O(1)
+  tableSize_ = 0;
   size_ = 0;
   table_.resize(CAPACITIES[mIndex_], nullptr);
 
@@ -476,6 +476,7 @@ void HashTable<K,V,Prober,Hash,KEqual>::resize()
     {
       table_[h] = thing;
       size_++;
+      tableSize_++;
     }
     else
     {
